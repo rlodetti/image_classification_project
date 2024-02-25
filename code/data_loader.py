@@ -5,7 +5,7 @@ class DataLoader:
     def __init__(self, config):
         self.config = config
 
-    def load_and_preprocess_dataset(self, directory, preprocessing_layer=None):
+    def load_and_preprocess_dataset(self, directory):
         dataset = image_dataset_from_directory(
             directory,
             label_mode=self.config["label_mode"],
@@ -13,13 +13,8 @@ class DataLoader:
             image_size=self.config["image_size"],
             color_mode=self.config["color_mode"]
         )
-        
-        if preprocessing_layer is not None:
-            # Apply the external preprocessing layer to each image in the dataset
-            dataset = dataset.map(lambda x, y: (preprocessing_layer(x, training=True), y))
-        
         return dataset.cache().shuffle(buffer_size=self.config["shuffle_buffer_size"]).prefetch(tf.data.AUTOTUNE)
-# 
+
 def get_datasets(directories, config, preprocessing_layer=None):
     data_loader = DataLoader(config)
     train_ds = data_loader.load_and_preprocess_dataset(directories["train"], preprocessing_layer)
