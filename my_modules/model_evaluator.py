@@ -1,6 +1,6 @@
 import time
 import matplotlib.pyplot as plt
-from pandas import DataFrame 
+import pandas as pd
 from tensorflow.keras import models, layers, metrics, callbacks, regularizers
 import pickle
 from tensorflow.keras.models import load_model
@@ -112,7 +112,7 @@ def load_viz(results, num_epochs):
     - num_epochs: Number of epochs the model was trained for.
     """
     metric_keys = list(results.keys())
-    metric = metric_keys[3]  
+    metric = metric_keys[2]  
     train_metric = results[metric]
     val_metric = results['val_' + metric]
 
@@ -146,9 +146,8 @@ def model_loader(model_path, results_path):
     return results, model, num_epochs
 
 
-def load_modeler(model_path, results_path, train=None, val=None, test=None):
-    
-    
+def load_modeler(model_path, results_path, train=None, val=None):
+    results, model, num_epochs = model_loader(model_path, results_path)
     load_viz(results,num_epochs)
     # Evaluate model
     train_scores = model.evaluate(train, verbose=0)
@@ -167,3 +166,34 @@ def print_results(results, train_scores, val_scores):
                                index=['Train', 'Val', 'Diff'], columns=metrics_names)
     display(performance_df)
     print('------------------------------\n')
+
+def summary_viz(name, val_ds):
+    base_dir = 'saved_models 2/'
+    model_path = base_dir+name+'.keras'
+    results_path = base_dir+name+'.pkl'
+    results, model, num_epochs = model_loader(model_path, results_path)
+    load_viz(results, num_epochs)
+    val_scores = model.evaluate(val_ds, verbose=0)
+    loss = round(val_scores[0],4)
+    recall = round(val_scores[2],4)
+    AUC = round(val_scores[1],4)
+    name = 'baseline'
+    df = pd.DataFrame([[loss,recall,AUC]],columns=['loss','recall','AUC'],index=[name])
+    display(df)
+
+
+def summary_df(file_names,model_names, val_ds):
+    base_dir = 'saved_models 2/'
+    score_list=[]
+    for name in file_names:
+        model_path = base_dir+name+'.keras'
+        results_path = base_dir+name+'.pkl'
+        results, model, num_epochs = model_loader(model_path, results_path)
+        val_scores = model.evaluate(val_ds, verbose=0)
+        loss = round(val_scores[0],4)
+        recall = round(val_scores[2],4)
+        AUC = round(val_scores[1],4)
+        score_list.append([loss, recall, AUC])
+    df = pd.DataFrame(score_list,columns=['loss','recall','AUC'],index=model_names)
+    display(df)
+    
