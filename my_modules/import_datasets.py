@@ -1,10 +1,16 @@
-from tensorflow import random, compat, data
 from tensorflow.keras.preprocessing import image_dataset_from_directory
 from tensorflow.keras.layers.experimental.preprocessing import Rescaling
+import matplotlib.pyplot as plt 
 
-# Set random seed and ignore warnings for consistent and clean output
-random.set_seed(42)
-compat.v1.logging.set_verbosity(compat.v1.logging.ERROR)  # Use TensorFlow's way to ignore warnings
+import tensorflow as tf
+import numpy as np
+import random
+
+# Set the random seeds for reproducibility
+SEED = 42
+tf.random.set_seed(SEED)
+np.random.seed(SEED)
+random.seed(SEED)
 
 # Average aspect ratio for image resizing
 AVG_RATIO = 1.3675285705588607
@@ -46,14 +52,27 @@ def process_dataset(dataset):
     """
     # Normalizing the dataset by rescaling
     rescale = Rescaling(1./255)
-    dataset = dataset.map(lambda x, y: (rescale(x), y), num_parallel_calls=data.AUTOTUNE)
+    dataset = dataset.map(lambda x, y: (rescale(x), y), num_parallel_calls=tf.data.AUTOTUNE)
 
     # Cache the dataset to improve performance
     dataset = dataset.cache()
 
     # Shuffle and prefetch to optimize loading
     dataset = dataset.shuffle(buffer_size=1000, seed=42)
-    dataset = dataset.prefetch(data.AUTOTUNE)
+    dataset = dataset.prefetch(tf.data.AUTOTUNE)
 
     return dataset
 
+
+def show_images(train_ds):
+    plt.figure(figsize=(10, 10))
+    for images, labels in train_ds.take(1):
+        for i in range(9):
+            ax = plt.subplot(3, 3, i + 1)
+            plt.imshow(images[i],cmap='gray')
+            if labels[i] == 0:
+                label = 'Normal'
+            else:
+                label = 'Pneumonia'
+            plt.title(label)
+            plt.axis("off")
