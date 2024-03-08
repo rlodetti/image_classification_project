@@ -159,7 +159,7 @@ def compare_bar(old_df, new_df):
 # Average aspect ratio for image resizing
 AVG_RATIO = 1.3675285705588607
 
-def create_dataset(directory, ratio=AVG_RATIO):
+def create_dataset(directory, ratio=AVG_RATIO, process=False, is_training=True):
     """
     Creates a dataset from a directory of images, resizing them to a consistent size.
 
@@ -178,18 +178,22 @@ def create_dataset(directory, ratio=AVG_RATIO):
         color_mode="grayscale",
         batch_size=32,
         image_size=(height, width),
-        shuffle=True,
+        shuffle=is_training,  # Shuffle only if it's the training dataset
         crop_to_aspect_ratio=True,
         seed=42
     )
-    return dataset
+    if process=True:
+        return process_dataset(dataset)
+    else:
+        return dataset
 
-def process_dataset(dataset):
+def process_dataset(dataset, is_training=True):
     """
-    Processes the dataset by rescaling, caching, shuffling, and prefetching.
+    Processes the dataset by rescaling, (optionally skipping shuffling for validation/test), and prefetching.
 
     Parameters:
     - dataset: A tf.data.Dataset object to process.
+    - is_training: A boolean flag to indicate if the dataset is for training. True by default.
 
     Returns:
     A processed tf.data.Dataset object.
@@ -201,11 +205,15 @@ def process_dataset(dataset):
     # Cache the dataset to improve performance
     dataset = dataset.cache()
 
-    # Shuffle and prefetch to optimize loading
-    dataset = dataset.shuffle(buffer_size=1000, seed=42)
+    if is_training:
+        # Shuffle only if it's the training dataset
+        dataset = dataset.shuffle(buffer_size=1000, seed=42)
+    
+    # Prefetch to optimize loading
     dataset = dataset.prefetch(tf.data.AUTOTUNE)
 
     return dataset
+
 
 
 def show_images(train_ds):

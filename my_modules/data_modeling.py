@@ -172,6 +172,7 @@ def summary_viz(name, val_ds):
     model_path = base_dir+name+'.keras'
     results_path = base_dir+name+'.pkl'
     results, model, num_epochs = model_loader(model_path, results_path)
+    
     load_viz(results, num_epochs)
     val_scores = model.evaluate(val_ds, verbose=0)
     loss = round(val_scores[0],4)
