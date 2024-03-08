@@ -31,19 +31,19 @@ def random_image(directory):
 def show_images(normal_dir,pneumonia_dir):
     """Display random images from Normal directory and Pneumonia directory."""
     image_with_labels = []
-    for i in range(9):
+    for i in range(6):
         img_dir = random.choice([normal_dir, pneumonia_dir])
         if img_dir == normal_dir:
             rand_image = (random_image(normal_dir),'Normal')
         else:
             rand_image = (random_image(pneumonia_dir),'Pneumonia')
         image_with_labels.append(rand_image)
-    plt.figure(figsize=(10, 10))
+    plt.figure(figsize=(10, 6))
     for i, (image, label) in enumerate(image_with_labels):
-            ax = plt.subplot(3, 3, i + 1)
-            plt.imshow(image,cmap='gray')
-            plt.title(label)
-            plt.axis("off")
+        ax = plt.subplot(2, 3, i + 1)
+        plt.imshow(image,cmap='gray')
+        plt.title(label)
+        plt.axis("off")
 
 def count_images(directory):
     """

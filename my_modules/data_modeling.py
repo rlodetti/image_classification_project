@@ -21,6 +21,13 @@ METRICS = [
     metrics.Recall(name='recall'),
     metrics.BinaryAccuracy(name='accuracy')]
 
+def trim_elements(input_dict):
+    trimmed_dict = {}
+    for key, value in input_dict.items():
+        # Slice each list to exclude the last 10 elements
+        trimmed_dict[key] = value[:-10]
+    return trimmed_dict
+
 def visualize_training_results(results, num_epochs):
     """
     Visualizes training results including accuracy/recall/auc and loss over epochs.
@@ -167,12 +174,14 @@ def print_results(results, train_scores, val_scores):
     display(performance_df)
     print('------------------------------\n')
 
-def summary_viz(name, val_ds):
+def summary_viz(name, val_ds, early_stopping=False):
     base_dir = 'saved_models 2/'
     model_path = base_dir+name+'.keras'
     results_path = base_dir+name+'.pkl'
     results, model, num_epochs = model_loader(model_path, results_path)
-    
+    if early_stopping:
+        results = trim_elements(results)
+        num_epochs = num_epochs-10
     load_viz(results, num_epochs)
     val_scores = model.evaluate(val_ds, verbose=0)
     loss = round(val_scores[0],4)

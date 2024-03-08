@@ -182,14 +182,14 @@ def create_dataset(directory, ratio=AVG_RATIO, process=False, is_training=True):
         crop_to_aspect_ratio=True,
         seed=42
     )
-    if process=True:
+    if process:
         return process_dataset(dataset)
     else:
         return dataset
 
 def process_dataset(dataset, is_training=True):
     """
-    Processes the dataset by rescaling, (optionally skipping shuffling for validation/test), and prefetching.
+    Processes the dataset by rescaling, (optionally shuffling for validation/test), caching, and prefetching.
 
     Parameters:
     - dataset: A tf.data.Dataset object to process.
@@ -202,13 +202,13 @@ def process_dataset(dataset, is_training=True):
     rescale = Rescaling(1./255)
     dataset = dataset.map(lambda x, y: (rescale(x), y), num_parallel_calls=tf.data.AUTOTUNE)
 
-    # Cache the dataset to improve performance
-    dataset = dataset.cache()
-
     if is_training:
         # Shuffle only if it's the training dataset
         dataset = dataset.shuffle(buffer_size=1000, seed=42)
-    
+
+    # Cache the dataset to improve performance
+    dataset = dataset.cache()
+
     # Prefetch to optimize loading
     dataset = dataset.prefetch(tf.data.AUTOTUNE)
 
@@ -217,10 +217,10 @@ def process_dataset(dataset, is_training=True):
 
 
 def show_images(train_ds):
-    plt.figure(figsize=(10, 10))
+    plt.figure(figsize=(10, 6))
     for images, labels in train_ds.take(1):
-        for i in range(9):
-            ax = plt.subplot(3, 3, i + 1)
+        for i in range(6):
+            ax = plt.subplot(2, 3, i + 1)
             plt.imshow(images[i],cmap='gray')
             if labels[i] == 0:
                 label = 'Normal'
