@@ -187,10 +187,9 @@ def summary_viz(name, val_ds, early_stopping=False):
     loss = round(val_scores[0],4)
     recall = round(val_scores[2],4)
     AUC = round(val_scores[1],4)
-    name = 'baseline'
     df = pd.DataFrame([[loss,recall,AUC]],columns=['loss','recall','AUC'],index=[name])
     display(df)
-
+    return model
 
 def summary_df(file_names,model_names, val_ds):
     base_dir = 'saved_models 2/'
