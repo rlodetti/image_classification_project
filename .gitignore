@@ -1,6 +1,9 @@
 #Data
 /data
 /hidden
+/saved_models
+"/saved_models 2"
+*.keras
 
 #Junk Files
 .DS_Store
