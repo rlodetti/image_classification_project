@@ -1,89 +1,114 @@
+# Standard library imports
 import os
 import random
-from PIL import Image
-from IPython.display import display
-import matplotlib.pyplot as plt
-import shutil
 from pathlib import Path
+
+# Third-party library imports
+from PIL import Image
+import matplotlib.pyplot as plt
 import pandas as pd
-from sklearn.model_selection import train_test_split
-import matplotlib.gridspec as gridspec
 
 def random_image(directory):
-    """Select a random image from a specified directory and return the image object."""
-    # List all files in the directory
-    files = [f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))]
-    # Filter for common image extensions
-    image_files = [f for f in files if f.lower().endswith(('jpeg'))]
+    """
+    Select a random image from a specified directory.
     
-    if not image_files:
-        print("No images found in the directory.")
-        return None
+    Parameters:
+        directory (str): The path to the directory from which to select an image.
+        
+    Returns:
+        Image object if an image is found, otherwise None.
+    """
+    # Generate a list of files with common image extension 'jpeg' in the directory
+    image_files = [f for f in os.listdir(directory) if f.lower().endswith('jpeg') 
+                   and os.path.isfile(os.path.join(directory, f))]
     
-    # Select a random image file
     random_image_path = os.path.join(directory, random.choice(image_files))
-    
-    # Open the image
     img = Image.open(random_image_path)
+    return img
 
-    return img  # Return the PIL image object for further manipulation or information if needed
-
-def show_images(normal_dir,pneumonia_dir):
-    """Display random images from Normal directory and Pneumonia directory."""
-    image_with_labels = []
-    for i in range(6):
+def show_images(normal_dir, pneumonia_dir):
+    """
+    Displays a set of random images from two directories.
+    
+    Parameters:
+        normal_dir (str): The path to the directory containing normal images.
+        pneumonia_dir (str): The path to the directory containing pneumonia images.
+    """
+    images_with_labels = []
+    for _ in range(6):
         img_dir = random.choice([normal_dir, pneumonia_dir])
-        if img_dir == normal_dir:
-            rand_image = (random_image(normal_dir),'Normal')
-        else:
-            rand_image = (random_image(pneumonia_dir),'Pneumonia')
-        image_with_labels.append(rand_image)
+        label = 'Normal' if img_dir == normal_dir else 'Pneumonia'
+        image = random_image(img_dir)
+        images_with_labels.append((image, label))
+    
     plt.figure(figsize=(10, 6))
-    for i, (image, label) in enumerate(image_with_labels):
+    for i, (image, label) in enumerate(images_with_labels):
         ax = plt.subplot(2, 3, i + 1)
-        plt.imshow(image,cmap='gray')
+        plt.imshow(image, cmap='gray')
         plt.title(label)
         plt.axis("off")
+    plt.show()
 
 def count_images(directory):
     """
     Counts the number of normal and pneumonia images in a given directory.
+    
+    Parameters:
+        directory (Path): The path object to the directory containing image subdirectories.
+        
+    Returns:
+        Tuple[int, int]: A tuple containing counts of normal and pneumonia images.
     """
-    normal_count = len(os.listdir(directory / 'NORMAL'))
-    pneumonia_count = len(os.listdir(directory / 'PNEUMONIA'))
+    normal_count = len(list((directory / 'NORMAL').glob('*')))
+    pneumonia_count = len(list((directory / 'PNEUMONIA').glob('*')))
     return normal_count, pneumonia_count
 
 def prepare_plot(base_dir, folders):
     """
-    Prepares the dataset for analysis, counting normal and pneumonia images.
+    Prepares the data for analysis by counting the images in each category.
+    
+    Parameters:
+        base_dir (str): The base directory containing dataset folders.
+        folders (list): A list of folder names within the base directory to analyze.
+        
+    Returns:
+        DataFrame: A pandas DataFrame containing the counts of images.
     """
-    data = {'Dataset':folders, 'Normal': [], 'Pneumonia': [], 'Total': []}
-    for dataset in data['Dataset']:
-        normal, pneumonia = count_images(Path(base_dir) / dataset)
+    data = {'Dataset': [], 'Normal': [], 'Pneumonia': [], 'Total': []}
+    for folder in folders:
+        path = Path(base_dir) / folder
+        normal, pneumonia = count_images(path)
+        data['Dataset'].append(folder)
         data['Normal'].append(normal)
         data['Pneumonia'].append(pneumonia)
         data['Total'].append(normal + pneumonia)
+    
     return pd.DataFrame(data)
 
-def plot_data_distribution(df):
+def plot_data_distribution(dataframe):
     """
-    Plots the distribution of images using a table and a stacked bar chart.
+    Plots the distribution of normal and pneumonia images in the dataset.
+    
+    Parameters:
+        dataframe (DataFrame): The pandas DataFrame containing the image counts.
     """
     fig, axs = plt.subplots(1, 2, figsize=(10, 5))
-
-    # Display DataFrame as a table
-    the_table = axs[0].table(cellText=df.values, colLabels=df.columns, loc='center', cellLoc='center')
+    
+    # Display the DataFrame as a table
+    the_table = axs[0].table(cellText=dataframe.values, colLabels=dataframe.columns, 
+                             loc='center', cellLoc='center')
     the_table.auto_set_font_size(False)
     the_table.set_fontsize(10)
     the_table.scale(1.2, 1.2)
     axs[0].axis('off')
-
-    # Plot a bar chart
-    axs[1].bar(df['Dataset'], df['Normal'], label='Normal')
-    axs[1].bar(df['Dataset'], df['Pneumonia'], bottom=df['Normal'], label='Pneumonia')
+    
+    # Plot a stacked bar chart
+    axs[1].bar(dataframe['Dataset'], dataframe['Normal'], label='Normal')
+    axs[1].bar(dataframe['Dataset'], dataframe['Pneumonia'], bottom=dataframe['Normal'], 
+               label='Pneumonia')
     axs[1].set_ylabel('Number of Images')
     axs[1].set_title('Distribution of Images')
     axs[1].legend()
-
+    
     plt.tight_layout()
     plt.show()

@@ -10,3 +10,12 @@ def con_mat(model,test_images, test_labels):
     disp = ConfusionMatrixDisplay(confusion_matrix=cnf_matrix)
     disp.plot()
     plt.show()
+
+def model_evaluator(model, test_ds):
+    scores = []
+    test_scores = model.evaluate(test_ds, verbose=0)
+    loss = round(test_scores[0],4)
+    recall = round(test_scores[2],4)
+    AUC = round(test_scores[1],4)
+    scores.append([loss, recall, AUC])
+    return scores
