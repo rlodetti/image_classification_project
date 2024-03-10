@@ -1,97 +1,117 @@
+# Standard library imports
 import os
-import shutil
-from pathlib import Path
-from pandas import DataFrame
-import matplotlib.pyplot as plt
-from sklearn.model_selection import train_test_split
-import matplotlib.gridspec as gridspec
-from tensorflow.keras.preprocessing import image_dataset_from_directory
-from tensorflow.keras.layers.experimental.preprocessing import Rescaling
-import tensorflow as tf
-import numpy as np
 import random
+import shutil
+import sys
+from pathlib import Path
 
+# Third-party imports
+import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
+import numpy as np
+import pandas as pd
+import tensorflow as tf
 from PIL import Image
+from sklearn.model_selection import train_test_split
+from tensorflow.keras.layers.experimental.preprocessing import Rescaling
+from tensorflow.keras.preprocessing import image_dataset_from_directory
 
-
-# Set the random seeds for reproducibility
+# Set the random seeds for reproducibility across multiple libraries
 SEED = 42
 tf.random.set_seed(SEED)
 np.random.seed(SEED)
 random.seed(SEED)
 
 def create_directory_structure(base_path, dir_names, labels):
+    """
+    Creates a nested directory structure for organizing dataset images by label.
+    
+    Parameters:
+        base_path (str): The base directory path where directories will be created.
+        dir_names (list): A list of directory names to create within the base path.
+        labels (list): A list of labels for creating subdirectories within each directory name.
+        
+    Returns:
+        dict: A dictionary with directory names as keys and their paths as values.
+    """
     directories = {}
     for dir_name in dir_names:
-        dir_path = os.path.join(base_path, dir_name)
-        if not os.path.exists(dir_path):
-            os.makedirs(dir_path)
+        dir_path = Path(base_path) / dir_name
+        dir_path.mkdir(parents=True, exist_ok=True)
         for label in labels:
-            label_dir = os.path.join(dir_path, label)
-            if not os.path.exists(label_dir):
-                os.makedirs(label_dir)
-        directories[dir_name] = dir_path
+            label_dir = dir_path / label
+            label_dir.mkdir(parents=True, exist_ok=True)
+        directories[dir_name] = str(dir_path)
     return directories
 
-def collect_and_combine_data(source_dirs, dest_dir,labels):
+def collect_and_combine_data(source_dirs, dest_dir, labels):
+    """
+    Copies images from multiple source directories into a common destination directory, organized by label.
+    
+    Parameters:
+        source_dirs (list): A list of paths to source directories.
+        dest_dir (str): The destination directory where files will be combined.
+        labels (list): A list of labels indicating subdirectory names within source and destination directories.
+    """
     for label in labels:
         files = []
         for dir_path in source_dirs:
-            label_dir = os.path.join(dir_path, label)
-            files.extend([os.path.join(label_dir, f) for f in os.listdir(label_dir) if os.path.isfile(os.path.join(label_dir, f))])
+            label_dir = Path(dir_path) / label
+            files.extend(label_dir.glob('*'))
         
-        combined_dir = os.path.join(dest_dir, label)
-        for file in files:
+        combined_dir = Path(dest_dir) / label
+        combined_dir.mkdir(parents=True, exist_ok=True)
+        for file_path in files:
             try:
-                shutil.copy(file, combined_dir)
+                shutil.copy(file_path, combined_dir)
             except IOError as e:
                 print(f"Unable to copy file. {e}")
             except:
                 print("Unexpected error:", sys.exc_info())
 
 def split_and_distribute_data(source_dir, target_dirs, labels, split_ratio=(0.8, 0.1, 0.1)):
+    """
+    Splits image files from a source directory into training, validation, and test sets and distributes them accordingly.
+    
+    Parameters:
+        source_dir (str): The source directory containing labeled subdirectories.
+        target_dirs (dict): A dictionary with keys as 'train', 'val', 'test' and their corresponding paths as values.
+        labels (list): A list of labels indicating subdirectory names within the source directory.
+        split_ratio (tuple): A tuple indicating the ratio of split (train, val, test).
+    """
     for label in labels:
-        files = [os.path.join(source_dir, label, f) for f in os.listdir(os.path.join(source_dir, label)) if os.path.isfile(os.path.join(source_dir, label, f))]
-        
-        train_files, test_files = train_test_split(files, test_size=split_ratio[1] + split_ratio[2], random_state=42)
-        val_files, test_files = train_test_split(test_files, test_size=split_ratio[2] / (split_ratio[1] + split_ratio[2]), random_state=42)
+        files = list((Path(source_dir) / label).glob('*'))
+        train_files, test_files = train_test_split(files, test_size=sum(split_ratio[1:]), random_state=SEED)
+        val_files, test_files = train_test_split(test_files, test_size=split_ratio[2] / sum(split_ratio[1:]), random_state=SEED)
         
         for files, dir_name in zip([train_files, val_files, test_files], ['new_train', 'new_val', 'new_test']):
-            copy_files(files, target_dirs[dir_name], label)
+            dest_dir = Path(target_dirs[dir_name]) / label
+            dest_dir.mkdir(parents=True, exist_ok=True)
+            for file_path in files:
+                shutil.copy(file_path, dest_dir)
     
-    # delete temporary directory
+    # Delete temporary directory after redistribution
     shutil.rmtree(source_dir)
 
-def copy_files(files, dest_dir, label):
-    for file in files:
-        try:
-            shutil.copy(file, os.path.join(dest_dir, label))
-        except IOError as e:
-            print(f"Unable to copy file. {e}")
-        except:
-            print("Unexpected error:", sys.exc_info())
-
 def run_redistribution():
-    # Base directory
+    """
+    Orchestrates the redistribution of images from original to new directory structure with balanced dataset splits.
+    """
     base_dir = "data/chest_xray"
-    
-    # Labels
     labels = ["NORMAL", "PNEUMONIA"]
-    
     new_dir_names = ['new_train', 'new_val', 'new_test', 'temp_combined']
     
     # Initialize directories
     new_dirs = create_directory_structure(base_dir, new_dir_names, labels)
     
     # Original directories
-    original_dirs = [os.path.join(base_dir, name) for name in ['train', 'test', 'val']]
+    original_dirs = [str(Path(base_dir) / name) for name in ['train', 'test', 'val']]
     
     # Collect and combine data into a temporary directory
     collect_and_combine_data(original_dirs, new_dirs['temp_combined'], labels)
     
     # Split and distribute data
-    split_and_distribute_data(new_dirs['temp_combined'], new_dirs, labels, split_ratio=(0.8, 0.1, 0.1))
-
+    split_and_distribute_data(new_dirs['temp_combined'], new_dirs, labels)
 
 def pie(old_df, new_df):
     # Create figure
@@ -155,63 +175,6 @@ def compare_bar(old_df, new_df):
     for dataset, rate in zip(new_df['Dataset'], new_df['total_rate']):
         total_height = new_df[new_df['Dataset'] == dataset]['Normal'].values[0] + new_df[new_df['Dataset'] == dataset]['Pneumonia'].values[0]
         ax[1].text(new_df[new_df['Dataset'] == dataset].index[0], total_height, f'{rate}%', ha='center', va='bottom')
-
-def create_dataset(directory, ratio=AVG_RATIO, process=False, is_training=True):
-    """
-    Creates a dataset from a directory of images, resizing them to a consistent size.
-
-    Parameters:
-    - directory: Path to the directory where the image files are located.
-    - ratio: Aspect ratio to determine the width of the images based on a fixed height.
-
-    Returns:
-    A tf.data.Dataset object.
-    """
-    height = 64
-    width = int(height * ratio)
-    dataset = image_dataset_from_directory(
-        directory,
-        label_mode='binary',
-        color_mode="grayscale",
-        batch_size=32,
-        image_size=(height, width),
-        shuffle=is_training,  # Shuffle only if it's the training dataset
-        crop_to_aspect_ratio=True,
-        seed=42
-    )
-    if process:
-        return process_dataset(dataset)
-    else:
-        return dataset
-
-def process_dataset(dataset, is_training=True):
-    """
-    Processes the dataset by rescaling, (optionally shuffling for validation/test), caching, and prefetching.
-
-    Parameters:
-    - dataset: A tf.data.Dataset object to process.
-    - is_training: A boolean flag to indicate if the dataset is for training. True by default.
-
-    Returns:
-    A processed tf.data.Dataset object.
-    """
-    # Normalizing the dataset by rescaling
-    rescale = Rescaling(1./255)
-    dataset = dataset.map(lambda x, y: (rescale(x), y), num_parallel_calls=tf.data.AUTOTUNE)
-
-    if is_training:
-        # Shuffle only if it's the training dataset
-        dataset = dataset.shuffle(buffer_size=1000, seed=42)
-
-    # Cache the dataset to improve performance
-    dataset = dataset.cache()
-
-    # Prefetch to optimize loading
-    dataset = dataset.prefetch(tf.data.AUTOTUNE)
-
-    return dataset
-
-
 
 def show_images(train_ds):
     plt.figure(figsize=(10, 6))

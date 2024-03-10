@@ -65,7 +65,7 @@ def prepare_plot(base_dir, folders):
         data['Total'].append(normal + pneumonia)
     return pd.DataFrame(data)
 
-def bars_data(df):
+def plot_data_distribution(df):
     """
     Plots the distribution of images using a table and a stacked bar chart.
     """

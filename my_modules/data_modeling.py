@@ -28,87 +28,6 @@ def trim_elements(input_dict):
         trimmed_dict[key] = value[:-10]
     return trimmed_dict
 
-def visualize_training_results(results, num_epochs):
-    """
-    Visualizes training results including accuracy/recall/auc and loss over epochs.
-
-    Parameters:
-    - results: The History object returned from the fit method of the model.
-    - num_epochs: Number of epochs the model was trained for.
-    """
-    metric_keys = list(results.history.keys())
-    metric = metric_keys[3]  # Assuming the first metric after loss and val_loss
-    train_metric = results.history[metric]
-    val_metric = results.history['val_' + metric]
-
-    epochs_range = range(num_epochs)
-
-    plt.figure(figsize=(10, 5))
-
-    # Plotting metric
-    plt.subplot(1, 2, 1)
-    plt.plot(epochs_range, train_metric, label=f'Training {metric}')
-    plt.plot(epochs_range, val_metric, label=f'Validation {metric}')
-    plt.legend(loc='lower right')
-    plt.title(f'Training and Validation {metric}')
-
-    # Plotting loss
-    plt.subplot(1, 2, 2)
-    plt.plot(epochs_range, results.history['loss'], label='Training Loss')
-    plt.plot(epochs_range, results.history['val_loss'], label='Validation Loss')
-    plt.legend(loc='upper right')
-    plt.title('Training and Validation Loss')
-    plt.show()
-
-def save_model(model, results, file_name, file_path):
-    full_path = file_path+file_name
-    
-    model.save(full_path+'.keras')
-
-    with open(full_path+'.pkl', 'wb') as f:
-        pickle.dump(results.history, f)
-
-def modeler(model, file_name, file_path, train=None, val=None, metrics=METRICS, 
-            optimizer='adam', num_epochs=10, early_stopping=None):
-    """
-    Compiles, trains, and evaluates the model, and visualizes training results.
-
-    Parameters:
-    - model: The Keras model to be trained.
-    - metrics: List of metrics to be evaluated by the model during training and testing.
-    - optimizer: String (name of optimizer) or optimizer instance to use.
-    - num_epochs: Number of epochs to train the model.
-    - early_stopping: EarlyStopping callback to stop training early if no improvement.
-    - train: Training dataset.
-    - val: Validation dataset.
-    """
-    model.compile(optimizer=optimizer, loss='binary_crossentropy', metrics=metrics)
-
-    start_time = time.time()
-    callbacks_list = [early_stopping] if early_stopping else []
-    results = model.fit(train, epochs=num_epochs, validation_data=val, verbose=0,
-                        callbacks=callbacks_list)
-    end_time = time.time()
-
-    save_model(model, results, file_name, file_path)
-    
-    print(f"Training time: {end_time - start_time} seconds\n")
-    visualize_training_results(results, num_epochs=int(len(results.history['loss'])))
-
-    # Evaluate model
-    train_scores = model.evaluate(train, verbose=0)
-    val_scores = model.evaluate(val, verbose=0)
-    
-    # Display performance difference
-    metrics_names = ['loss'] + [metric.name for metric in metrics]
-    diff_scores = [val - train for train, val in zip(train_scores, val_scores)]
-    performance_df = DataFrame([train_scores, val_scores, diff_scores], 
-                               index=['Train', 'Val', 'Diff'], columns=metrics_names)
-    display(performance_df)
-    print('------------------------------\n')
-
-    return results, model
-
 
 def load_viz(results, num_epochs):
     """
@@ -118,10 +37,8 @@ def load_viz(results, num_epochs):
     - results: The History object returned from the fit method of the model.
     - num_epochs: Number of epochs the model was trained for.
     """
-    metric_keys = list(results.keys())
-    metric = metric_keys[2]  
-    train_metric = results[metric]
-    val_metric = results['val_' + metric]
+    train_recall = results[recall]
+    val_recall = results['val_recall']
 
     epochs_range = range(num_epochs)
 
@@ -129,10 +46,10 @@ def load_viz(results, num_epochs):
 
     # Plotting metric
     plt.subplot(1, 2, 1)
-    plt.plot(epochs_range, train_metric, label=f'Training {metric}')
-    plt.plot(epochs_range, val_metric, label=f'Validation {metric}')
+    plt.plot(epochs_range, train_recall, label=f'Training Recall')
+    plt.plot(epochs_range, val_recall, label=f'Validation Recall')
     plt.legend(loc='lower right')
-    plt.title(f'Training and Validation {metric}')
+    plt.title(f'Training and Validation Recall')
 
     # Plotting loss
     plt.subplot(1, 2, 2)
