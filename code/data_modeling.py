@@ -1,28 +1,26 @@
-import os
+# Standard library imports
+from pathlib import Path
 import pickle
 import random
-from pathlib import Path
 
+# Third-party imports
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import tensorflow as tf
-from tensorflow.keras import callbacks, layers, metrics, models, regularizers
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+from tensorflow.keras.metrics import AUC, Recall, BinaryAccuracy
 from tensorflow.keras.models import load_model
-from sklearn.metrics import confusion_matrix
-from sklearn.metrics import ConfusionMatrixDisplay
 
 # Set the random seeds for reproducibility across libraries
 SEED = 42
-tf.random.set_seed(SEED)
 np.random.seed(SEED)
 random.seed(SEED)
 
 # Define metrics globally to avoid redundancy
 METRICS = [
-    metrics.AUC(name='auc'),
-    metrics.Recall(name='recall'),
-    metrics.BinaryAccuracy(name='accuracy')
+    AUC(name='auc'),
+    Recall(name='recall'),
+    BinaryAccuracy(name='accuracy')
 ]
 
 def trim_elements(input_dict):
@@ -153,7 +151,7 @@ def summary_df(file_names, train_ds, val_ds):
     display(summary_df)
 
 # Creating a function to predict and plot a confusion matrix
-def cnf_mat(model, dataset):
+def cnf_mat(model, dataset save_name=False):
     images_list = []
     labels_list = []
     
@@ -175,5 +173,15 @@ def cnf_mat(model, dataset):
     fig, ax = plt.subplots(figsize=(4,4))
     disp = ConfusionMatrixDisplay(confusion_matrix=cnf_matrix)
     disp.plot(ax=ax)
-    
+    if save_name != False:
+        plt.savefig(save_name+'.png', bbox_inches='tight')
     plt.show()
+
+def model_evaluator(model, test_ds):
+    scores = []
+    test_scores = model.evaluate(test_ds, verbose=0)
+    loss = round(test_scores[0],4)
+    recall = round(test_scores[2],4)
+    AUC = round(test_scores[1],4)
+    scores.append([loss, recall, AUC])
+    return scores

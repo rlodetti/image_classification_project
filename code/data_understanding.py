@@ -6,7 +6,7 @@ from pathlib import Path
 # Third-party library imports
 from PIL import Image
 import matplotlib.pyplot as plt
-import pandas as pd
+from pandas import DataFrame
 
 def random_image(directory):
     """
@@ -83,7 +83,7 @@ def prepare_plot(base_dir, folders):
         data['Pneumonia'].append(pneumonia)
         data['Total'].append(normal + pneumonia)
     
-    return pd.DataFrame(data)
+    return DataFrame(data)
 
 def plot_data_distribution(dataframe):
     """

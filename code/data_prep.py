@@ -6,20 +6,17 @@ import sys
 from pathlib import Path
 
 # Third-party imports
-import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
-import numpy as np
-import pandas as pd
-import tensorflow as tf
+from matplotlib import pyplot as plt, gridspec
+from numpy import random as np_random, mean as np_mean
+from pandas import DataFrame
 from PIL import Image
 from sklearn.model_selection import train_test_split
-from tensorflow.keras.layers.experimental.preprocessing import Rescaling
-from tensorflow.keras.preprocessing import image_dataset_from_directory
+from tensorflow.random import set_seed
 
 # Set the random seeds for reproducibility across multiple libraries
 SEED = 42
-tf.random.set_seed(SEED)
-np.random.seed(SEED)
+set_seed(SEED)
+np_random.seed(SEED)
 random.seed(SEED)
 
 def create_directory_structure(base_path, dir_names, labels):
@@ -175,6 +172,7 @@ def compare_bar(old_df, new_df):
     for dataset, rate in zip(new_df['Dataset'], new_df['total_rate']):
         total_height = new_df[new_df['Dataset'] == dataset]['Normal'].values[0] + new_df[new_df['Dataset'] == dataset]['Pneumonia'].values[0]
         ax[1].text(new_df[new_df['Dataset'] == dataset].index[0], total_height, f'{rate}%', ha='center', va='bottom')
+    
 
 def show_images(train_ds):
     plt.figure(figsize=(10, 6))
@@ -199,9 +197,9 @@ def get_image_sizes(directory):
 def print_image_statistics(widths, heights):
     """Print statistics for a collection of image widths and heights."""
     num_images = len(widths)
-    avg_width = round(np.mean(widths))
-    avg_height = round(np.mean(heights))
-    avg_aspect_ratio = np.mean(widths) / np.mean(heights)
+    avg_width = round(np_mean(widths))
+    avg_height = round(np_mean(heights))
+    avg_aspect_ratio = np_mean(widths) / np_mean(heights)
     max_width = max(widths)
     max_height = max(heights)
     min_width = min(widths)
