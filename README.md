@@ -1,11 +1,9 @@
 # Advancing Pneumonia Diagnosis Through Neural Networks
-***
 **Author:** Ron Lodetti Jr.
 ![doctor](./images/doctor_crop.jpg)
 Image by [Freepik](https://www.freepik.com/free-photo/doctor-checking-radiography-front-view_35436186.htm#fromView=search&page=1&position=0&uuid=0c377c4a-a764-4319-8c20-d708851a483)
 
 ## Overview
-***
 In this project, I developed a machine learning model to enhance the diagnosis of pneumonia in pediatric patients using 5,863 high-quality, expert-diagnosed chest X-ray images from the Guangzhou Women and Children’s Medical Center. Data preparation involved reorganizing the dataset into an 80-10-10 split for training, validation, and test sets, maintaining consistent positive/negative ratios. Images were downsampled during import to balance computational efficiency with image quality, cropped to a uniform aspect ratio of 1.37 to prioritize central content, and rescaled for normalization, ensuring reliable model training and evaluation.
 
 Utilizing TensorFlow and Keras, my modeling process involved iterative training and evaluation, focusing on optimizing loss, recall, and AUC metrics for accurate pneumonia detection. I began with simpler models, progressively incorporating more complex configurations, including Conv2D layers and increased nodes. To prevent overfitting, I experimented with dropout layers, L1/L2 regularization, and data augmentation. I also tested various initializers and optimizers to enhance model efficiency. Furthermore, I applied transfer learning with the pretrained ResNet50 model to improve results.
@@ -13,7 +11,6 @@ Utilizing TensorFlow and Keras, my modeling process involved iterative training 
 The final model demonstrated an exceptional ability to identify pneumonia, achieving a recall of 97.2% and an AUC of 99.11% on unseen test data. These results highlight its potential for accurately diagnosing pneumonia and suggest strong generalizability to new data. This project underscores the significant promise of machine learning in improving pediatric pneumonia diagnosis, offering a pathway towards more efficient and accurate healthcare solutions. 
 
 ## Business Problem
-***
 Pneumonia, a significant respiratory condition that affects millions globally, presents a diagnostic challenge as much time and resources are spent manually interpreting chest x-rays by radiologists. 
 
 I have been tasked by a children's hospital to develop a model that can classify whether a given patient has pneumonia, given a chest x-ray image. If successful, this could significantly improve diagnosis accuracy and efficiency, ultimately providing better care for patients.
@@ -34,7 +31,6 @@ Kermany D, Goldbaum M, Cai W et al. Identifying Medical Diagnoses and Treatable 
 ![before](./images/xrays_before.png)
 
 ## Data Preparation
-***
 To prepare my data for modeling I:
 - Reorganized the image files.
 - Imported my training data, standardizing aspect ratio.
@@ -50,7 +46,6 @@ I also made sure to keep the positive/negative ratio the same for each dataset.
 ![pie](./images/pies.png)
 
 ## Data Modeling
-***
 During the modeling process, I iteratively trained and evaluated numerous models to identify the most effective one. A validation dataset, previously unseen by the model, was used for evaluation to ensure accuracy in real-world scenarios. To inform my decision-making, I relied on both loss and recall metrics, aiming to minimize error while maximizing the model's ability to correctly identify pneumonia cases. I also included the Area Under the ROC Curve (AUC) to provide insight into the model's overall performance, ensuring it doesn't just achieve high recall by simply labeling all cases as positive.
 
 Key adjustments made during model iterations and hyperparameter tuning included:
@@ -101,7 +96,6 @@ In the end, the Dropout model performed the best.
 ![final](images/final_model.png)
 
 ## Evaluation
-***
 The final model significantly outperforms all other models, achieving superior scores across all metrics in the testing set. Ultimately, it accurately identified 97% of pneumonia images.
 
 Given the scoring on validation and testing datasets, I'm confident these results would generalize to new, unseen data. 
@@ -137,6 +131,7 @@ See the full analysis in the [Jupyter Notebook](./image_classification_project.i
 For additional info, contact Ron Lodetti at [ron.lodetti@gmail.com](mailto:ron.lodetti@gmail.com)
 
 ## Repository Structure
+```
 ├── src
 │   ├── __init__.py
 │   ├── data_understanding.py
@@ -157,3 +152,4 @@ For additional info, contact Ron Lodetti at [ron.lodetti@gmail.com](mailto:ron.l
 ├── requirements.txt
 ├── image_classification_project_presentation.pdf
 └── image_classification_project.ipynb
+```
