@@ -151,7 +151,7 @@ def summary_df(file_names, train_ds, val_ds):
     display(summary_df)
 
 # Creating a function to predict and plot a confusion matrix
-def cnf_mat(model, dataset save_name=False):
+def cnf_mat(model, dataset, save_name=False):
     images_list = []
     labels_list = []
     
