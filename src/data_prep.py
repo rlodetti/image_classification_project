@@ -12,6 +12,7 @@ from pandas import DataFrame
 from PIL import Image
 from sklearn.model_selection import train_test_split
 from tensorflow.random import set_seed
+from tensorflow import tile as tf_tile
 
 # Set the random seeds for reproducibility across multiple libraries
 SEED = 42
@@ -214,3 +215,8 @@ def print_image_statistics(widths, heights):
     print(f"Min width: {min_width}")
     print(f"Min height: {min_height}")
     return avg_aspect_ratio
+
+def convert_to_rgb(image, label):
+    """Convert grayscale image to RGB by replicating channels """
+    image = tf_tile(image, [1, 1, 1, 3])
+    return image, label

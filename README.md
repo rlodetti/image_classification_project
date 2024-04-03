@@ -110,10 +110,22 @@ Given the scoring on validation and testing datasets, I'm confident these result
 ### Final Model Confusion Matrix
 ![cnf_mat](images/final_cnf_mat.png)
 
+### Model Interpretation with LIME
+We apply the LIME (Local Interpretable Model-Agnostic Explanations) technique to illuminate which regions of the images are influencing the model's predictions. 
+
+Green sections identify areas of the image that support the model's predicton. While red sections idenitfy areas in the image that argue against the model's prediction.
+![cnf_mat](images/TP_LIME_figures.png)
+
+![cnf_mat](images/TN_LIME_figures.png)
+
 ## Conclusions
 
 ### Recommendations
-Based on the final model, it is recommended that the children's hospital consider incorporating this model into their pneumonia diagnosis workflow. Initially, radiologists and the model should independently evaluate chest X-rays, with their diagnoses being compared to assess the model's reliability and accuracy. Over time, as confidence in the model's diagnostic capabilities grows, the hospital could gradually shift more responsibility to the model. This approach aims to not only enhance diagnostic efficiency but also improve accuracy, ultimately benefiting patient care.
+Based on the final model, it is recommended that the children's hospital consider incorporating this model into their pneumonia diagnosis workflow.
+
+Radiologists can use the LIME images to ascertain whether the model is indeed focusing on the appropriate areas of the chest x-rays for its diagnoses, building trust in the model's decision-making process.
+
+Over time, as confidence in the model's diagnostic capabilities grows, the hospital could gradually shift more responsibility to the model. This approach aims to not only enhance diagnostic efficiency but also improve accuracy, ultimately benefiting patient care.
 
 ### Limitations
 - Although a 97% accuracy rate is impressive, it implies that 3% of patients with the condition are misdiagnosed as healthy.
@@ -136,7 +148,8 @@ For additional info, contact Ron Lodetti at [ron.lodetti@gmail.com](mailto:ron.l
 │   ├── __init__.py
 │   ├── data_understanding.py
 │   ├── data_prep.py
-│   └── data_modeling.py
+│   ├── data_modeling.py
+│   └── evaluation.py
 ├── data
 │   ├── new_test
 │   │   ├── NORMAL
